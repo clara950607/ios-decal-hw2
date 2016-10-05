@@ -22,6 +22,10 @@ class ViewController: UIViewController {
     // TODO: This looks like a good place to add some data structures.
     //       One data structure is initialized below for reference.
     var someDataStructure: [String] = [""]
+    var num_lst : [String] = [String]()
+    var operation = ""
+    var isInteger: Bool = true
+    var lastIsDigit: Bool = false
     
 
     override func viewDidLoad() {
@@ -53,27 +57,81 @@ class ViewController: UIViewController {
     //       Modify this one or create your own.
     func updateResultLabel(_ content: String) {
         print("Update me like one of those PCs")
+        if (content != "" && content.characters.count <= 7){
+            resultLabel.text = content
+        }
     }
     
     
     // TODO: A calculate method with no parameters, scary!
     //       Modify this one or create your own.
     func calculate() -> String {
-        return "0"
+        var ret :  String!
+        ret = ""
+        if (num_lst.count == 2 && operation != ""){
+            let second : String! = num_lst.popLast()
+            let first : String! = num_lst.popLast()
+            if (isInteger && operation != "/"){
+                ret = String(intCalculate(a: Int(first)!, b: Int(second)!, operation: operation))
+                num_lst.append(ret)
+            } else{
+                let tmp = calculate(a: first, b: second, operation: operation)
+                ret = tmp.prettyOutput
+                if (ret.contains(".")){
+                    isInteger = false
+                }else{
+                    isInteger = true
+                }
+                num_lst.append(ret)
+            }
+        }
+        return ret
     }
     
     // TODO: A simple calculate method for integers.
     //       Modify this one or create your own.
     func intCalculate(a: Int, b:Int, operation: String) -> Int {
         print("Calculation requested for \(a) \(operation) \(b)")
-        return 0
+        var ret = 0
+        switch(operation){
+        case "+":
+            ret = a + b
+            break
+        case "-":
+            ret = a - b
+            break
+        case "*":
+            ret = a * b
+            break
+        default:
+            ret = 0
+        }
+        return ret
     }
     
     // TODO: A general calculate method for doubles
     //       Modify this one or create your own.
     func calculate(a: String, b:String, operation: String) -> Double {
         print("Calculation requested for \(a) \(operation) \(b)")
-        return 0.0
+        let x : Double = Double(a)!
+        let y : Double = Double(b)!
+        var ret = 0.0
+        switch(operation){
+        case "+":
+            ret = x + y
+            break
+        case "-":
+            ret = x - y
+            break
+        case "*":
+            ret = x * y
+            break
+        case "/":
+            ret = x / y
+        default:
+            ret = 0.0
+        }
+        return ret
     }
     
     // REQUIRED: The responder to a number button being pressed.
@@ -81,16 +139,79 @@ class ViewController: UIViewController {
         guard Int(sender.content) != nil else { return }
         print("The number \(sender.content) was pressed")
         // Fill me in!
+        if(!lastIsDigit){
+            num_lst.append(sender.content)
+            updateResultLabel(sender.content)
+        }else{
+            let new_val = num_lst.popLast()!+sender.content
+            num_lst.append(new_val)
+            updateResultLabel(new_val)
+        }
+        lastIsDigit = true
     }
     
     // REQUIRED: The responder to an operator button being pressed.
     func operatorPressed(_ sender: CustomButton) {
         // Fill me in!
+        if (sender.content == "C"){
+            updateResultLabel("0")
+            num_lst = [String]()
+            operation = ""
+            lastIsDigit = false
+        }else if (sender.content == "+/-"){
+            if (lastIsDigit){
+                var last = num_lst.popLast()!
+                let i = last.startIndex
+                if (last[i] == "-"){
+                    last.remove(at:last.startIndex)
+                    num_lst.append(last)
+                    updateResultLabel(last)
+                }else{
+                    num_lst.append("-" + last)
+                    updateResultLabel("-" + last)
+
+                }
+                lastIsDigit = true
+            }
+        }else if (sender.content == "="){
+            updateResultLabel(calculate())
+            operation = ""
+            lastIsDigit = false
+        }else{
+            updateResultLabel(calculate())
+            operation = sender.content
+            lastIsDigit = false
+        }
     }
     
     // REQUIRED: The responder to a number or operator button being pressed.
     func buttonPressed(_ sender: CustomButton) {
        // Fill me in!
+        if (sender.content == "."){
+            if (lastIsDigit){
+                let tmp = num_lst.popLast()!+"."
+                num_lst.append(tmp)
+                updateResultLabel(tmp)
+            }else{
+                if (operation == ""){
+                    num_lst = [String]()
+                    num_lst.append("0" + ".")
+                }else{
+                    num_lst.append("0" + ".")
+                }
+            }
+            isInteger = false
+            lastIsDigit = true
+        }else if(sender.content == "0"){
+            if (lastIsDigit){
+                let tmp = num_lst.popLast()!+sender.content
+                num_lst.append(tmp)
+                updateResultLabel(tmp)
+            }
+            else {
+                num_lst.append("0")
+            }
+        }
     }
     
     // IMPORTANT: Do NOT change any of the code below.
